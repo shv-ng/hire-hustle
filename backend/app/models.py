@@ -24,15 +24,15 @@ class JobStatus(str, enum.Enum):
 
 
 class ContentType(str, enum.Enum):
-    ColdMail = "cold_mail"
-    ResumeEdit = "resume_edit"
-    ReferralMessage = "referral_message"
-    CoverLetter = "cover_letter"
+    COVER_LETTER = "cover_letter"
+    KEYWORDS = "keywords"
+    REFERRAL_MESSAGE = "referral_message"
+    COLD_MAIL = "cold_mail"
 
 
 class JobBase(SQLModel):
-    company_name: str | None
-    position: str | None
+    company: str | None
+    role: str | None
     url: str | None
     description: str | None
     status: JobStatus = Field(default=JobStatus.WISHLIST)
@@ -43,8 +43,8 @@ class JobCreate(JobBase):
 
 
 class JobUpdate(SQLModel):
-    company_name: str | None = None
-    position: str | None = None
+    company: str | None = None
+    role: str | None = None
     url: str | None = None
     description: str | None = None
     status: JobStatus | None = None

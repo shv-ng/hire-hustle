@@ -16,21 +16,21 @@ def generate_job_assets(jd_text: str, user_bio: str, content_type: ContentType):
     # We define specific instructions for each content type to ensure the LLM
     # understands the nuance between a resume and a cold email.
     type_specific_instructions = {
-        ContentType.ColdMail: (
+        ContentType.COLD_MAIL: (
             "Focus on a specific 'pain point' mentioned in the JD. "
             "The subject line must be catchy. The body should follow the 'Hook-Value-CTA' framework. "
             "Keep it under 150 words."
         ),
-        ContentType.ResumeEdit: (
+        ContentType.KEYWORDS: (
             "Identify the top 5 keywords in the JD. Rewrite the Bio's experience "
             "to quantify achievements (using the X-Y-Z formula: Accomplished [X] as measured by [Y], by doing [Z]). "
             "Ensure the tone is objective and data-driven."
         ),
-        ContentType.ReferralMessage: (
+        ContentType.REFERRAL_MESSAGE: (
             "Keep the tone warm but professional. Focus on why the referrer would feel "
             "confident vouching for me. Include a one-sentence 'blurb' they can copy-paste."
         ),
-        ContentType.CoverLetter: (
+        ContentType.COVER_LETTER: (
             "Keep the tone warm but professional. Focus on why the referrer would feel "
             "confident vouching for me. Include a one-sentence 'blurb' they can copy-paste."
         ),

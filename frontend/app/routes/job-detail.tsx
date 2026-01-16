@@ -1,117 +1,122 @@
-import { Badge } from "@/components/ui/badge";
+import { JobDescription } from "@/components/job-detail/job-description";
+import { JobHeader } from "@/components/job-detail/job-header";
+import { JobKeywords } from "@/components/job-detail/job-keywords";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Copy, FileText, Sparkles } from "lucide-react";
+import useJob from "@/hooks/use-job";
+import useDeleteJob from "@/hooks/use-delete-job";
+import useAIContent from "@/hooks/use-ai-content"; // Import useAIContent
+import { PencilIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { EditJobDialog } from "@/components/edit-job-dialog";
+import { ContentType } from "@/types"; // Import ContentType
 
 const JobDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [show, setShow] = useState(false);
-  const job = {
-    company: "Google",
-    role: "Frontend Engineer",
-    status: "Interviewing",
-    appliedDate: "2024-03-20",
-    jd: `About Simplilearn Founded in 2010 and based in Plano, Texas, and Bangalore, India, Simplilearn, a Blackstone portfolio company, is a global leader in digital upskilling, enabling learners across the globe with access to world-class training to individuals and businesses worldwide. Simplilearn offers 1,500+ live classes each month across 150+ countries, impacting over 8 million learners globally. The programs are designed and delivered with world-renowned universities, top corporations, and leading industry bodies via live online classes featuring top industry practitioners, sought-after trainers, and global leaders. From college students and early career professionals to managers, executives, small businesses, and big corporations, Simplilearns role-based, skill-focused, industry-recognized, and globally relevant training programs are ideal upskilling solutions for diverse career or business goals. Roles & Responsibilities: Working as a junior Software Engineer focusing on Next.js and React. Should be eager to learn new tools & technologies, specifically AI-powered development. Use AI tools like ChatGPT and v0 to accelerate the development of components and logic. Collaborate with the team to build web applications with 100% matching design from Figma. Ensure all web pages are responsive and maintain high visual fidelity across different screen sizes. Write clean, maintainable code using Tailwind CSS and modern React hooks. Debug and resolve frontend issues to ensure a smooth and pixel-perfect user experience. Stay up-to-date with the latest features in Next.js (App Router) and React. Desired Skills Bachelor's/Master's Degree in Computer Science or related field. Basic understanding of Next.js and React fundamentals. Experience (or high interest) in using AI tools like v0 and ChatGPT to build UI faster. Strong attention to detail to ensure code output matches Figma designs exactly. Should have a basic understanding of database systems (SQL, NoSQL, JSON). Knowledge of Tailwind CSS or modern styling libraries is a plus. Should be a great team player with a problem-solving mindset. Role: Full Stack Developer Industry Type: Education / Training Department: Engineering - Software & QA Employment Type: Full Time, Permanent Role Category: Software Development Education UG: B.Tech/B.E. in Any Specialization Key Skills Skills highlighted with ‘‘ are preferred keyskills NextjsSQL FigmaNoSQLReact.Js`, keywords: ["React", "TypeScript", "Performance", "System Design"], coverLetter: "Dear Hiring Manager, I am thrilled to apply...", coldMail: "Hi [Name], I recently applied for...", referralMsg: "Hey [Name], I saw an opening at Google..."
-  };
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const JD_LIMIT = 500;
-  const isLongJD = job.jd.length > JD_LIMIT
+  const { job, isLoading, error, fetchJob } = useJob(Number(id));
+  const { submitDeleteJob, isDeleting } = useDeleteJob();
+  const { aiContent, isLoadingAI, errorAI } = useAIContent(Number(id)); // Use the AI content hook
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text); toast("Copied to clipboard");
   };
+
+  const handleDeleteJob = async () => {
+    if (!job?.id) return;
+
+    if (window.confirm("Are you sure you want to delete this job? This action cannot be undone.")) {
+      const result = await submitDeleteJob(job.id);
+      if (result.success) {
+        toast.success("Job deleted successfully!");
+        navigate("/");
+      } else {
+        toast.error("Failed to delete job. Please try again.");
+      }
+    }
+  };
+
+  if (isLoading) return <div className="text-center py-10">Loading job details...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  if (!job) return <div className="text-center py-10">Job not found.</div>;
+
+  const getAIContentForTab = (contentType: ContentType) => {
+    if (isLoadingAI) return "Generating AI content...";
+    if (errorAI) return "Error generating AI content.";
+
+    switch (contentType) {
+      case ContentType.COVER_LETTER:
+        return aiContent.coverLetter || "No cover letter generated yet.";
+      case ContentType.KEYWORDS:
+        return aiContent.keywords ? aiContent.keywords.join(", ") : "No keywords generated yet.";
+      case ContentType.REFERRAL_MESSAGE:
+        return aiContent.referralMessage || "No referral message generated yet.";
+      default:
+        return "Content type not recognized.";
+    }
+  };
+
   return (
     <main className="container mx-auto py-10 px-4 max-w-4xl">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 -ml-2 text-muted-foreground">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
-        <div>
-          <h1 className="text-4xl font-bold">
-            {job.company}
-          </h1>
-          <div className="flex items-center gap-4 mt-2">
-            <p className="text-xl text-muted-foreground">
-              {job.role}
-            </p>
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Calendar className="mr-1 h-4 w-4" />
-              {job.appliedDate}
-            </div>
-          </div>
+      <div className="flex justify-between items-center">
+        <JobHeader
+          company={job.company || "N/A"}
+          role={job.role || "N/A"}
+          status={job.status || "N/A"}
+          appliedDate={job.applied_at || "N/A"}
+          onBack={() => navigate(-1)}
+        />
+        <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+                <PencilIcon className="h-4 w-4 mr-2" /> Edit Job
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDeleteJob} disabled={isDeleting}>
+                {isDeleting ? "Deleting..." : <><Trash2 className="h-4 w-4 mr-2" /> Delete Job</>}
+            </Button>
         </div>
-        <Badge variant="outline" className="text-sm px-3 py-1 uppercase tracking-wider">
-          {job.status}
-        </Badge>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Job Description
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground max-h-96 overflow-y-auto whitespace-pre-wrap">
-              <div className="relative">
-                <div className="whitespace-pre-wrap leading-relaxed">
-                  {show || !isLongJD ? job.jd.trim() : `${job.jd.trim().substring(0, JD_LIMIT)}...`}
-                </div>
-
-                {isLongJD && (
-                  <button
-                    onClick={() => setShow(!show)}
-                    className="mt-2 text-xs font-semibold text-primary hover:underline block"
-                  >
-                    {show ? "Show Less" : "Read More"}
-                  </button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <JobDescription description={job.description || "No description available."} characterLimit={500} />
         </div>
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-yellow-500" />
-                Target Keywords
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              {job.keywords.map(kw => (
-                <Badge key={kw} variant="secondary" className="bg-primary/10 text-primary border-none"> {kw}
-                </Badge>))}
-            </CardContent>
-          </Card>
-          <Tabs defaultValue="cover-letter" className="w-full my-6">
+          {isLoadingAI ? (
+            <div className="text-center py-4">Generating keywords...</div>
+          ) : errorAI ? (
+            <div className="text-center py-4 text-red-500">Error fetching keywords: {errorAI}</div>
+          ) : (
+            <JobKeywords keywords={aiContent.keywords || []} />
+          )}
+          <Tabs defaultValue={ContentType.COVER_LETTER} className="w-full my-6">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
-              <TabsTrigger value="cold-mail">Cold Mail</TabsTrigger>
-              <TabsTrigger value="referral">Referral</TabsTrigger>
+              <TabsTrigger value={ContentType.COVER_LETTER}>Cover Letter</TabsTrigger>
+              <TabsTrigger value={ContentType.KEYWORDS}>Keywords</TabsTrigger>
+              <TabsTrigger value={ContentType.REFERRAL_MESSAGE}>Referral</TabsTrigger>
             </TabsList>
 
             {[
-              { id: "cover-letter", title: "Cover Letter", content: job.coverLetter },
-              { id: "cold-mail", title: "Cold Mail Script", content: job.coldMail },
-              { id: "referral", title: "Referral Request", content: job.referralMsg },
+              { id: ContentType.COVER_LETTER, title: "Cover Letter", content: aiContent.coverLetter },
+              { id: ContentType.KEYWORDS, title: "Keywords", content: aiContent.keywords?.join("\n") },
+              { id: ContentType.REFERRAL_MESSAGE, title: "Referral Request", content: aiContent.referralMessage },
             ].map((tab) => (
               <TabsContent key={tab.id} value={tab.id}>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-semibold">{tab.title}</CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(tab.content)}>
-                      <Copy className="h-4 w-4 mr-2" /> Copy
-                    </Button>
+                    {tab.content && (
+                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(tab.content as string)}>
+                            <Copy className="h-4 w-4 mr-2" /> Copy
+                        </Button>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="p-4 rounded-md bg-muted/30 min-h-[300px] whitespace-pre-wrap leading-relaxed">
-                      {tab.content}
+                      {isLoadingAI ? "Generating AI content..." : errorAI ? "Error generating AI content." : tab.content || "No content generated yet."}
                     </div>
                   </CardContent>
                 </Card>
@@ -120,9 +125,15 @@ const JobDetail = () => {
           </Tabs>
         </div>
       </div>
+      {job && (
+        <EditJobDialog
+          job={job}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onJobUpdated={fetchJob}
+        />
+      )}
     </main>
-
-
   );
 }
 export default JobDetail

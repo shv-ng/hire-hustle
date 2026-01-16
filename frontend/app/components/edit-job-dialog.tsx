@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
@@ -7,25 +7,39 @@ import { Input } from "./ui/input";
 import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue
 } from "./ui/select";
-import { JobStatus, type JobCreate } from "@/types";
-import useCreateJob from "@/hooks/use-create-job";
+import { JobStatus, type Job, type JobUpdate } from "@/types";
+import useUpdateJob from "@/hooks/use-update-job";
 import { toast } from "sonner";
 
-interface AddJobDialogProps {
-  onJobAdded: () => void;
+interface EditJobDialogProps {
+  job: Job;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onJobUpdated: () => void;
 }
 
-export function AddJobDialog({ onJobAdded }: AddJobDialogProps) {
-  const [open, setOpen] = useState(false);
-  const { submitJob, isCreating } = useCreateJob();
+export function EditJobDialog({ job, open, onOpenChange, onJobUpdated }: EditJobDialogProps) {
+  const { submitUpdateJob, isUpdating } = useUpdateJob();
 
-  const [formData, setFormData] = useState<JobCreate>({
+  const [formData, setFormData] = useState<JobUpdate>({
     company: "",
     role: "",
     url: "",
     description: "",
     status: JobStatus.WISHLIST,
   });
+
+  useEffect(() => {
+    if (job) {
+      setFormData({
+        company: job.company || "",
+        role: job.role || "",
+        url: job.url || "",
+        description: job.description || "",
+        status: job.status,
+      });
+    }
+  }, [job]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -39,26 +53,28 @@ export function AddJobDialog({ onJobAdded }: AddJobDialogProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const result = await submitJob(formData);
+    if (!job.id) {
+      toast.error("Job ID not found for update.");
+      return;
+    }
+
+    const result = await submitUpdateJob(job.id, formData);
 
     if (result.success) {
-      toast.success("Job Added!");
-      setOpen(false);
-      setFormData({ company: "", role: "", url: "", description: "", status: JobStatus.WISHLIST });
-      onJobAdded(); // Call this to refresh the job list
+      toast.success("Job Updated!");
+      onOpenChange(false);
+      onJobUpdated(); // Call this to refresh the job details
     } else {
-      toast.error("Could not save the job. Please try again.");
+      toast.error("Could not update the job. Please try again.");
     }
   };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen} >
-      <DialogTrigger asChild>
-        <Button size="lg">Add Job</Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[90h]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90%]">
         <DialogHeader>
           <DialogTitle>
-            Add New Job
+            Edit Job
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
@@ -119,16 +135,16 @@ export function AddJobDialog({ onJobAdded }: AddJobDialogProps) {
               id="description"
               name="description"
               placeholder="Paste the JD here..."
-              className="min-h-[100px]"
+              className="min-h-[100px]max-h-[200px]"
               value={formData.description || ""}
               onChange={handleInputChange}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isCreating}>
-            {isCreating ? "Saving..." : "Save Job"}
+          <Button type="submit" className="w-full" disabled={isUpdating}>
+            {isUpdating ? "Updating..." : "Update Job"}
           </Button>
         </form>
       </DialogContent>
-    </Dialog >
-  )
+    </Dialog>
+  );
 }
