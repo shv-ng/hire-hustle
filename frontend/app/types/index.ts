@@ -1,12 +1,13 @@
 export interface Job {
   id: number
-  company: string | null
-  role: string | null
-  url: string | null
-  description: string | null
-  status: JobStatus
+  company: string
+  role: string
+  url: string
+  description: string
+  status: string
   created_at: string
   applied_at: string | null
+  notes?: string
 }
 
 export enum JobStatus {
@@ -27,7 +28,8 @@ export interface JobCreate {
   role: string
   url?: string
   description?: string
-  status?: JobStatus
+  status?: string
+  notes?: string
 }
 
 export interface JobUpdate {
@@ -35,19 +37,6 @@ export interface JobUpdate {
   role?: string
   url?: string
   description?: string
-  status?: JobStatus
-}
-
-export enum ContentType {
-  COVER_LETTER = "cover_letter",
-  KEYWORDS = "keywords",
-  REFERRAL_MESSAGE = "referral_message",
-}
-
-export interface AIOutput {
-  id: number
-  job_id: number
-  content_type: ContentType
-  generated_text: string
-  created_at: string
+  status?: string
+  notes?: string
 }

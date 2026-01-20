@@ -1,18 +1,14 @@
 import { JobDescription } from "@/components/job-detail/job-description";
 import { JobHeader } from "@/components/job-detail/job-header";
-import { JobKeywords } from "@/components/job-detail/job-keywords";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useJob from "@/hooks/use-job";
 import useDeleteJob from "@/hooks/use-delete-job";
-import useAIContent from "@/hooks/use-ai-content"; // Import useAIContent
-import { PencilIcon, Trash2 } from "lucide-react";
+import { PencilIcon, Trash2, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { EditJobDialog } from "@/components/edit-job-dialog";
-import { ContentType } from "@/types"; // Import ContentType
 
 const JobDetail = () => {
   const { id } = useParams();
@@ -21,11 +17,6 @@ const JobDetail = () => {
 
   const { job, isLoading, error, fetchJob } = useJob(Number(id));
   const { submitDeleteJob, isDeleting } = useDeleteJob();
-  const { aiContent, isLoadingAI, errorAI } = useAIContent(Number(id)); // Use the AI content hook
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text); toast("Copied to clipboard");
-  };
 
   const handleDeleteJob = async () => {
     if (!job?.id) return;
@@ -41,90 +32,129 @@ const JobDetail = () => {
     }
   };
 
-  if (isLoading) return <div className="text-center py-10">Loading job details...</div>;
-  if (error) return <div className="text-center py-10 text-red-500">Error: {error}</div>;
-  if (!job) return <div className="text-center py-10">Job not found.</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading job details...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const getAIContentForTab = (contentType: ContentType) => {
-    if (isLoadingAI) return "Generating AI content...";
-    if (errorAI) return "Error generating AI content.";
+  if (error) {
+    return (
+      <div className="container mx-auto py-10 px-4 max-w-4xl">
+        <div className="text-center py-10">
+          <p className="text-red-500 text-lg">Error: {error}</p>
+          <Button onClick={() => navigate("/")} className="mt-4">
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-    switch (contentType) {
-      case ContentType.COVER_LETTER:
-        return aiContent.coverLetter || "No cover letter generated yet.";
-      case ContentType.KEYWORDS:
-        return aiContent.keywords ? aiContent.keywords.join(", ") : "No keywords generated yet.";
-      case ContentType.REFERRAL_MESSAGE:
-        return aiContent.referralMessage || "No referral message generated yet.";
-      default:
-        return "Content type not recognized.";
-    }
-  };
+  if (!job) {
+    return (
+      <div className="container mx-auto py-10 px-4 max-w-4xl">
+        <div className="text-center py-10">
+          <p className="text-lg">Job not found.</p>
+          <Button onClick={() => navigate("/")} className="mt-4">
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className="container mx-auto py-10 px-4 max-w-4xl">
-      <div className="flex justify-between items-center">
-        <JobHeader
-          company={job.company || "N/A"}
-          role={job.role || "N/A"}
-          status={job.status || "N/A"}
-          appliedDate={job.applied_at || "N/A"}
-          onBack={() => navigate(-1)}
-        />
-        <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsEditDialogOpen(true)}>
-                <PencilIcon className="h-4 w-4 mr-2" /> Edit Job
-            </Button>
-            <Button variant="destructive" size="sm" onClick={handleDeleteJob} disabled={isDeleting}>
-                {isDeleting ? "Deleting..." : <><Trash2 className="h-4 w-4 mr-2" /> Delete Job</>}
-            </Button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <JobDescription description={job.description || "No description available."} characterLimit={500} />
-        </div>
-        <div className="lg:col-span-2">
-          {isLoadingAI ? (
-            <div className="text-center py-4">Generating keywords...</div>
-          ) : errorAI ? (
-            <div className="text-center py-4 text-red-500">Error fetching keywords: {errorAI}</div>
-          ) : (
-            <JobKeywords keywords={aiContent.keywords || []} />
-          )}
-          <Tabs defaultValue={ContentType.COVER_LETTER} className="w-full my-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value={ContentType.COVER_LETTER}>Cover Letter</TabsTrigger>
-              <TabsTrigger value={ContentType.KEYWORDS}>Keywords</TabsTrigger>
-              <TabsTrigger value={ContentType.REFERRAL_MESSAGE}>Referral</TabsTrigger>
-            </TabsList>
+    <main className="container mx-auto py-10 px-4 max-w-5xl">
+      <JobHeader
+        company={job.company || "N/A"}
+        role={job.role || "N/A"}
+        status={job.status || "wishlist"}
+        appliedDate={job.applied_at || "Not applied"}
+        onBack={() => navigate("/")}
+      />
 
-            {[
-              { id: ContentType.COVER_LETTER, title: "Cover Letter", content: aiContent.coverLetter },
-              { id: ContentType.KEYWORDS, title: "Keywords", content: aiContent.keywords?.join("\n") },
-              { id: ContentType.REFERRAL_MESSAGE, title: "Referral Request", content: aiContent.referralMessage },
-            ].map((tab) => (
-              <TabsContent key={tab.id} value={tab.id}>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-semibold">{tab.title}</CardTitle>
-                    {tab.content && (
-                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(tab.content as string)}>
-                            <Copy className="h-4 w-4 mr-2" /> Copy
-                        </Button>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="p-4 rounded-md bg-muted/30 min-h-[300px] whitespace-pre-wrap leading-relaxed">
-                      {isLoadingAI ? "Generating AI content..." : errorAI ? "Error generating AI content." : tab.content || "No content generated yet."}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
+      <div className="flex gap-3 mb-8">
+        <Button
+          variant="outline"
+          onClick={() => setIsEditDialogOpen(true)}
+          className="flex-1"
+        >
+          <PencilIcon className="h-4 w-4 mr-2" /> Edit Job
+        </Button>
+        {job.url && (
+          <Button
+            variant="outline"
+            onClick={() => window.open(job.url, '_blank')}
+            className="flex-1"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" /> View Posting
+          </Button>
+        )}
+        <Button
+          variant="destructive"
+          onClick={handleDeleteJob}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting..." : <><Trash2 className="h-4 w-4 mr-2" /> Delete</>}
+        </Button>
       </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        {job.description && (
+          <JobDescription
+            description={job.description}
+            characterLimit={600}
+          />
+        )}
+
+        {job.notes && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {job.notes}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Timeline</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b">
+              <span className="text-sm font-medium">Created</span>
+              <span className="text-sm text-muted-foreground">
+                {new Date(job.created_at).toLocaleDateString()}
+              </span>
+            </div>
+            {job.applied_at && (
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm font-medium">Applied</span>
+                <span className="text-sm text-muted-foreground">
+                  {new Date(job.applied_at).toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm font-medium">Status</span>
+              <span className="text-sm text-muted-foreground capitalize">
+                {job.status.replace('_', ' ')}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {job && (
         <EditJobDialog
           job={job}
@@ -135,5 +165,6 @@ const JobDetail = () => {
       )}
     </main>
   );
-}
-export default JobDetail
+};
+
+export default JobDetail;

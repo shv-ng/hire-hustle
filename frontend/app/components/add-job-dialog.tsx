@@ -119,7 +119,7 @@ export function AddJobDialog({ onJobAdded }: AddJobDialogProps) {
               id="description"
               name="description"
               placeholder="Paste the JD here..."
-              className="min-h-[100px]"
+              className="min-h-[100px] max-h-[200px]"
               value={formData.description || ""}
               onChange={handleInputChange}
             />

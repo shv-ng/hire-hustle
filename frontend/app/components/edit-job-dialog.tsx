@@ -63,7 +63,7 @@ export function EditJobDialog({ job, open, onOpenChange, onJobUpdated }: EditJob
     if (result.success) {
       toast.success("Job Updated!");
       onOpenChange(false);
-      onJobUpdated(); // Call this to refresh the job details
+      onJobUpdated();
     } else {
       toast.error("Could not update the job. Please try again.");
     }
@@ -71,11 +71,9 @@ export function EditJobDialog({ job, open, onOpenChange, onJobUpdated }: EditJob
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90%]">
+      <DialogContent className="max-h-[90%] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Edit Job
-          </DialogTitle>
+          <DialogTitle>Edit Job</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -122,9 +120,10 @@ export function EditJobDialog({ job, open, onOpenChange, onJobUpdated }: EditJob
                 <SelectGroup>
                   <SelectLabel>Select a status</SelectLabel>
                   {Object.values(JobStatus).map((status) => (
-                    < SelectItem value={status} key={status} className="capitalize">
+                    <SelectItem value={status} key={status} className="capitalize">
                       {status}
-                    </SelectItem>))}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -135,7 +134,7 @@ export function EditJobDialog({ job, open, onOpenChange, onJobUpdated }: EditJob
               id="description"
               name="description"
               placeholder="Paste the JD here..."
-              className="min-h-[100px]max-h-[200px]"
+              className="min-h-[100px] max-h-[200px]"
               value={formData.description || ""}
               onChange={handleInputChange}
             />

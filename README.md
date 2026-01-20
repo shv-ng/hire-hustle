@@ -1,169 +1,116 @@
-# Hire Hustle
+# HireHustle - Smart Job Application Tracker
 
-A job application tracker with AI integration to streamline your job search process. This application helps you keep track of all your job applications and automatically generates personalized AI content like cover letters, keywords for ATS, and referral messages based on the job description.
+A full-stack job application tracker built to streamline my own job search process. Track applications, manage status workflows, and never lose track of opportunities again.
+
+> **Live Demo**: [hirehustle.vercel.app](https://your-app.vercel.app) | **API**: [api.hirehustle.com](https://your-api.render.com)
+
+## Why I Built This
+
+During my job search, I was juggling applications across LinkedIn, company websites, and spreadsheets. I needed a centralized system to track everything - from wishlist companies to final rounds. So I built HireHustle as my daily driver.
+
+**Real-world usage**: Currently tracking 40+ applications with automated status workflows.
 
 ## Features
 
--   **Job Tracking:** Add, view, edit, and delete job applications.
--   **Application Status:** Track the status of each application (e.g., Wishlist, Applied, Interviewing, Offer, Rejected).
--   **AI Content Generation:** Automatically generate:
-    -   **Cover Letters:** Tailored to the job description.
-    -   **Keywords:** Optimized for Applicant Tracking Systems (ATS).
-    -   **Referral Messages:** Personalized for networking.
--   **Responsive Design:** User-friendly interface built with React and Tailwind CSS.
+- ✅ **Full Application Lifecycle** - Track jobs from wishlist → applied → screening → offer/rejected
+- 🔍 **Smart Search & Filtering** - Instantly find applications by company, role, or status
+- 📝 **Job Description Storage** - Paste JDs for future reference during interview prep
+- 🎯 **Status Management** - 10 predefined statuses covering entire interview pipeline
+- ⚡ **Fast & Responsive** - Built with modern React + Go backend
+- 🎨 **Clean UI** - Dark mode interface built with Tailwind CSS + shadcn/ui
 
 ## Tech Stack
 
-**Frontend:**
--   **React:** A JavaScript library for building user interfaces.
--   **React Router:** For navigation and routing within the application.
--   **Tailwind CSS:** A utility-first CSS framework for rapid UI development.
--   **ShadCN UI:** Reusable UI components built with Tailwind CSS and Radix UI.
--   **Axios:** Promise-based HTTP client for the browser and Node.js.
--   **Sonner:** Toast notifications.
+**Frontend**
+- React 19 + React Router 7 (file-based routing)
+- TypeScript for type safety
+- Tailwind CSS + shadcn/ui components
+- Axios for API calls
 
-**Backend:**
--   **FastAPI:** A modern, fast (high-performance) web framework for building APIs with Python 3.8+.
--   **SQLModel:** A library for interacting with SQL databases, designed to be easy to use and compatible with Pydantic and SQLAlchemy.
--   **PostgreSQL:** A powerful, open-source relational database system.
--   **python-dotenv:** For managing environment variables.
--   **BackgroundTasks:** FastAPI's built-in tool for running tasks in the background.
--   **google-genai:** For AI content generation (currently placeholder content for faster development).
+**Backend**
+- Go 1.23 + Chi router
+- PostgreSQL 16 + sqlc (type-safe SQL)
+- pgx/v5 (PostgreSQL driver)
+- Database migrations with goose
 
-## Local Development Setup
+**DevOps**
+- Docker + Docker Compose
+- Deployed on Vercel (frontend) + Render (backend)
 
-Follow these steps to set up the project locally.
+## Quick Start
 
 ### Prerequisites
+- Go 1.23+
+- Node.js 20+
+- Docker (for PostgreSQL)
 
--   Python 3.12+
--   Node.js 20+ and npm
--   Docker (optional, but recommended for PostgreSQL)
-
-### 1. Clone the Repository
-
+### 1. Clone & Setup Database
 ```bash
-git clone https://github.com/your-username/hirehustle.git
+git clone https://github.com/yourusername/hirehustle.git
 cd hirehustle
+
+# Start PostgreSQL
+docker-compose up -d
 ```
 
-### 2. Set up PostgreSQL with Docker
-
-Create a `docker-compose.yaml` file in the project root with the following content:
-
-```yaml
-version: '3.8'
-services:
-  db:
-    image: postgres:16
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: hirehustle_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:
-```
-
-Then, start the PostgreSQL container:
-
+### 2. Backend Setup
 ```bash
-docker-compose up -d db
+# Create .env in root
+echo 'POSTGRES_URL="postgresql://user:password@localhost:5432/hirehustle_db"' > .env
+
+# Install dependencies & run
+go mod download
+go run main.go
+# Backend runs on http://localhost:8080
 ```
 
-### 3. Backend Setup
-
-Navigate to the `backend` directory:
-
-```bash
-cd backend
-```
-
-Create a `.env` file in the `backend` directory with your PostgreSQL connection string:
-
-```
-POSTGRES_URL="postgresql://user:password@localhost:5432/hirehustle_db"
-```
-
-Install dependencies using `uv` (or `pip` if `uv` is not installed):
-
-```bash
-uv pip install -e .
-# Or if using pip
-# pip install -e .
-```
-
-Run the backend application:
-
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-The backend API will be running at `http://localhost:8000`.
-
-### 4. Frontend Setup
-
-Open a new terminal and navigate to the `frontend` directory:
-
+### 3. Frontend Setup
 ```bash
 cd frontend
-```
 
-Create a `.env` file in the `frontend` directory:
+# Create .env
+echo 'VITE_BACKEND_URL="http://localhost:8080"' > .env
 
-```
-VITE_BACKEND_URL="http://localhost:8000"
-```
-
-Install dependencies:
-
-```bash
+# Install & run
 npm install
-```
-
-Run the frontend application:
-
-```bash
 npm run dev
+# Frontend runs on http://localhost:3000
 ```
 
-The frontend application will be running at `http://localhost:3000` (or another port as indicated by Vite).
+## Project Structure
+```
+hirehustle/
+├── main.go              # Go backend entry point
+├── jobs.go              # Job CRUD handlers
+├── db/                  # sqlc generated code
+├── migrations/          # Database migrations
+├── frontend/
+│   ├── app/
+│   │   ├── routes/      # React Router pages
+│   │   ├── components/  # Reusable UI components
+│   │   ├── hooks/       # Custom React hooks
+│   │   └── lib/         # API client & utilities
+│   └── vite.config.ts
+└── docker-compose.yaml
+```
 
-## Deployment
+## API Endpoints
+```
+GET    /jobs          # List all jobs
+GET    /jobs/:id      # Get single job
+POST   /jobs          # Create new job
+PUT    /jobs/:id      # Update job
+DELETE /jobs/:id      # Delete job
+```
 
-### Backend (Render)
+## What's Next
 
-1.  **Sign up for Render:** Go to [Render.com](https://render.com/) and create an account.
-2.  **Create a new Web Service:** Connect your GitHub repository.
-3.  **Configuration:**
-    -   **Root Directory:** `backend`
-    -   **Build Command:** `uv pip install --system` (assuming `uv` is installed globally on Render environment, otherwise `pip install -r requirements.txt` if you generate one)
-    -   **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-    -   **Environment Variables:** Add `POSTGRES_URL` pointing to your Render PostgreSQL instance.
-4.  **Database:** Link a PostgreSQL database on Render to your web service.
-
-### Frontend (Vercel)
-
-1.  **Sign up for Vercel:** Go to [Vercel.com](https://vercel.com/) and create an account.
-2.  **Import Your Project:** Connect your GitHub repository.
-3.  **Configuration:**
-    -   **Root Directory:** `frontend`
-    -   **Build Command:** `npm run build`
-    -   **Output Directory:** `build` (or as configured in `vite.config.ts`)
-    -   **Environment Variables:** Add `VITE_BACKEND_URL` pointing to your deployed Render backend service URL.
-
-## Future Enhancements
-
--   Replace placeholder AI content generation with actual calls to a large language model.
--   Implement user authentication.
--   Add more advanced job filtering and sorting options.
--   Integrate with job boards for easier application.
+Future enhancements I'm considering:
+- [ ] Email reminders for follow-ups
+- [ ] Analytics dashboard (applications/week, response rates)
+- [ ] Browser extension to quick-add jobs
+- [ ] Export to CSV for backup
 
 ---
 
-Feel free to contribute, open issues, or suggest new features!
+**Built with** ❤️ **during my job search journey**

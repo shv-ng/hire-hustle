@@ -15,7 +15,7 @@ export function JobList({ jobs, isLoading, error }: JobListProps) {
   const [search, setSearch] = useState<string>("");
   const navigate = useNavigate();
 
-  const filteredJobs = jobs.filter(
+  const filteredJobs = jobs?.filter(
     (job) =>
       job.company?.toLowerCase().includes(search.toLowerCase()) ||
       job.role?.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,7 +40,7 @@ export function JobList({ jobs, isLoading, error }: JobListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredJobs.length == 0 ? (
+            {filteredJobs == null || filteredJobs.length == 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No jobs found!
@@ -48,7 +48,7 @@ export function JobList({ jobs, isLoading, error }: JobListProps) {
               </TableRow>
             ) :
               (
-                filteredJobs.map((job) => (
+                filteredJobs?.map((job) => (
                   <TableRow
                     key={job.id}
                     onClick={() => { navigate(`/jobs/${job.id}`) }}

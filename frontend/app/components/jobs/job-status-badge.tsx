@@ -2,25 +2,46 @@ import { Badge } from "../ui/badge";
 
 interface JobStatusBadgeProps {
   status: string
-  isBigger: boolean
+  isBigger?: boolean
 }
 
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
+const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+  wishlist: "outline",
+  drafting: "outline",
   applied: "secondary",
-  interviewing: "default",
-  offered: "default",
-  rejected: "outline",
+  follow_up: "secondary",
+  screening: "default",
+  technical: "default",
+  final: "default",
+  offer: "default",
+  rejected: "destructive",
+  ghosted: "outline",
 };
 
-export function JobStatusBadge({ status, isBigger }: JobStatusBadgeProps) {
-  const variant = STATUS_VARIANTS[status.toLowerCase()] || "outline";
-  isBigger = isBigger || false
+const STATUS_LABELS: Record<string, string> = {
+  wishlist: "Wishlist",
+  drafting: "Drafting",
+  applied: "Applied",
+  follow_up: "Follow Up",
+  screening: "Screening",
+  technical: "Technical",
+  final: "Final Round",
+  offer: "Offer",
+  rejected: "Rejected",
+  ghosted: "Ghosted",
+};
 
-  const className = isBigger ? "text-sm px-3 py-1 uppercase tracking-wider" : "capitalize";
+export function JobStatusBadge({ status, isBigger = false }: JobStatusBadgeProps) {
+  const variant = STATUS_VARIANTS[status.toLowerCase()] || "outline";
+  const label = STATUS_LABELS[status.toLowerCase()] || status;
+
+  const className = isBigger
+    ? "text-sm px-4 py-1.5 font-semibold"
+    : "text-xs";
 
   return (
-    <Badge variant={variant} className={className} >
-      {status}
-    </ Badge>
+    <Badge variant={variant} className={className}>
+      {label}
+    </Badge>
   );
 }
