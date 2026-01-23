@@ -42,8 +42,8 @@ func createJobHandler(queries *db.Queries) http.HandlerFunc {
 
 		// Convert to sqlc params
 		params := db.CreateJobParams{
-			Company:     pgtype.Text{String: req.Company, Valid: req.Company != ""},
-			Role:        pgtype.Text{String: req.Role, Valid: req.Role != ""},
+			Company:     req.Company,
+			Role:        req.Role,
 			Url:         pgtype.Text{String: req.URL, Valid: req.URL != ""},
 			Description: pgtype.Text{String: req.Description, Valid: req.Description != ""},
 		}
@@ -94,8 +94,8 @@ func updateJobHandler(queries *db.Queries) http.HandlerFunc {
 
 		params := db.UpdateJobParams{
 			ID:          int32(jobID),
-			Company:     pgtype.Text{String: req.Company, Valid: req.Company != ""},
-			Role:        pgtype.Text{String: req.Role, Valid: req.Role != ""},
+			Company:     req.Company,
+			Role:        req.Role,
 			Url:         pgtype.Text{String: req.URL, Valid: req.URL != ""},
 			Description: pgtype.Text{String: req.Description, Valid: req.Description != ""},
 		}
@@ -203,8 +203,8 @@ type JobResponse struct {
 func toJobResponse(job db.Job) JobResponse {
 	resp := JobResponse{
 		ID:          job.ID,
-		Company:     job.Company.String,
-		Role:        job.Role.String,
+		Company:     job.Company,
+		Role:        job.Role,
 		URL:         job.Url.String,
 		Description: job.Description.String,
 		Status:      string(job.Status.Jobstatus),

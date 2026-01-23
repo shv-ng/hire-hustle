@@ -11,49 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Contenttype string
-
-const (
-	ContenttypeCoverLetter     Contenttype = "cover_letter"
-	ContenttypeKeywords        Contenttype = "keywords"
-	ContenttypeReferralMessage Contenttype = "referral_message"
-)
-
-func (e *Contenttype) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = Contenttype(s)
-	case string:
-		*e = Contenttype(s)
-	default:
-		return fmt.Errorf("unsupported scan type for Contenttype: %T", src)
-	}
-	return nil
-}
-
-type NullContenttype struct {
-	Contenttype Contenttype
-	Valid       bool // Valid is true if Contenttype is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullContenttype) Scan(value interface{}) error {
-	if value == nil {
-		ns.Contenttype, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.Contenttype.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullContenttype) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.Contenttype), nil
-}
-
 type Jobstatus string
 
 const (
@@ -104,18 +61,10 @@ func (ns NullJobstatus) Value() (driver.Value, error) {
 	return string(ns.Jobstatus), nil
 }
 
-type AiContent struct {
-	ID            int32
-	JobID         pgtype.Int4
-	ContentType   Contenttype
-	GeneratedText string
-	CreatedAt     pgtype.Timestamp
-}
-
 type Job struct {
 	ID          int32
-	Company     pgtype.Text
-	Role        pgtype.Text
+	Company     string
+	Role        string
 	Url         pgtype.Text
 	Description pgtype.Text
 	Status      NullJobstatus

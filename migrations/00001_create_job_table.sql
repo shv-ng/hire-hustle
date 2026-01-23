@@ -1,5 +1,15 @@
 -- +goose Up
 -- +goose StatementBegin
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'jobstatus') THEN
+        CREATE TYPE jobstatus AS ENUM (
+            'wishlist', 'drafting', 'applied', 'follow_up', 'screening', 
+            'technical', 'final', 'offer', 'rejected', 'ghosted'
+        );
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS jobs (
   id SERIAL PRIMARY KEY,
   company VARCHAR,
