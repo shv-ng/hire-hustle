@@ -2,7 +2,7 @@
 
 A full-stack job application tracker built to streamline my own job search process. Track applications, manage status workflows, and never lose track of opportunities again.
 
-> **Live Demo**: [hirehustle.vercel.app](https://your-app.vercel.app) | **API**: [api.hirehustle.com](https://your-api.render.com)
+> **Live Demo**: [hire-hustle-eight.vercel.app/](https://hire-hustle-eight.vercel.app/) | **API**: [hire-hustle.onrender.com](https://hire-hustle.onrender.com)
 
 ## Why I Built This
 
@@ -106,6 +106,7 @@ DELETE /jobs/:id      # Delete job
 ## What's Next
 
 Future enhancements I'm considering:
+- [ ] Add auth to make it available to multi user
 - [ ] Email reminders for follow-ups
 - [ ] Analytics dashboard (applications/week, response rates)
 - [ ] Browser extension to quick-add jobs
